@@ -19,10 +19,10 @@ public abstract class AuditableAbstractAggregateRoot<T extends AbstractAggregate
     private Long id;
 
     @CreatedDate
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = true, updatable = false)
     private Date createdAt;
 
     @LastModifiedDate
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Date updatedAt;
 }

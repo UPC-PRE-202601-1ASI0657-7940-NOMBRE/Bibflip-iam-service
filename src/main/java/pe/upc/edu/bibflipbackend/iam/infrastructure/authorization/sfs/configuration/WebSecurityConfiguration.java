@@ -72,48 +72,37 @@ public class WebSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // CORS default configuration
-        http.cors(configurer -> configurer.configurationSource( source -> {
+        http.cors(corsConfigurer -> corsConfigurer.configurationSource(request -> {
             var cors = new CorsConfiguration();
-            cors.setAllowedOrigins(List.of("*"));
-            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-            cors.setAllowedHeaders(List.of("*"));
+            cors.setAllowedOrigins(List.of(""));
+            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
+            cors.setAllowedHeaders(List.of(""));
             return cors;
         }));
         http.csrf(AbstractHttpConfigurer::disable)
-                .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .authenticationEntryPoint(unauthorizedRequestHandler)
-                        .accessDeniedHandler(forbiddenRequestHandler)
-                )
+                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(unauthorizedRequestHandler))
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(
-                                "/api/v1/authentication/**",
-                                "api/v1/authentication/**",
-                                "/api/v1/password-recovery/**",
-                                "api/v1/password-recovery/**",
-                                "/api/v1/cubicles/{cubicleId}/availability-slot/status",
-                                "api/v1/cubicles/{cubicleId}/availability-slot/status",
-                                "api/v1/bookings/{id}",
-                                "/api/v1/bookings/{id}",
-                                "/api/v1/bookings/cubicle/{cubicleId}/current",
-                                "api/v1/bookings/cubicle/{cubicleId}/current",
-                                "api/v1/health/**",
+                                "/api-docs/**",
+                                "/docs/**",
                                 "/v3/api-docs/**",
-                                "/swagger/**",
+                                "/api/v1/authentication/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/swagger-resources/**",
-                                "/webjars/**").permitAll()
-                        .requestMatchers("/api/v1/roles/**").hasRole("ADMIN")     // Solo ADMIN puede acceder
-                        .requestMatchers("/api/v1/user/**").hasAnyRole("SUPERVISOR", "ADMIN") // supervisor y ADMIN pueden acceder
-                        //.requestMatchers("/api/v1/user/**").hasAnyRole("USER", "ADMIN") // USER y ADMIN pueden acceder
+                                "/webjars/**",
+                                "/favicon.ico",
+                                "/favicon-16x16.png",
+                                "/favicon-32x32.png",
+                                "/error"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 );
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authorizationRequestFilter(), UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
+
     }
 
 }
