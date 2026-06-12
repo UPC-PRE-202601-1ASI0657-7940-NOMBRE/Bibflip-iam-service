@@ -1,5 +1,6 @@
 package pe.upc.edu.bibflipbackend.iam.infrastructure.authorization.sfs.configuration;
 
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import pe.upc.edu.bibflipbackend.iam.infrastructure.authorization.sfs.pipeline.BearerAuthorizationRequestFilter;
 import pe.upc.edu.bibflipbackend.iam.infrastructure.authorization.sfs.pipeline.ForbiddenRequestHandler;
 import pe.upc.edu.bibflipbackend.iam.infrastructure.hashing.bcrypt.BCryptHashingService;
@@ -72,16 +73,14 @@ public class WebSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors(corsConfigurer -> corsConfigurer.configurationSource(request -> {
-            var cors = new CorsConfiguration();
-            cors.setAllowedOrigins(List.of(""));
-            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
-            cors.setAllowedHeaders(List.of(""));
-            return cors;
-        }));
-        http.csrf(AbstractHttpConfigurer::disable)
-                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(unauthorizedRequestHandler))
-                .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling.authenticationEntryPoint(unauthorizedRequestHandler)
+                )
+                .sessionManagement(customizer ->
+                        customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(
                                 "/api-docs/**",
@@ -91,6 +90,7 @@ public class WebSecurityConfiguration {
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/swagger-resources/**",
+                                "/api/v1/users/**",
                                 "/webjars/**",
                                 "/favicon.ico",
                                 "/favicon-16x16.png",
@@ -99,10 +99,11 @@ public class WebSecurityConfiguration {
                         ).permitAll()
                         .anyRequest().authenticated()
                 );
+
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authorizationRequestFilter(), UsernamePasswordAuthenticationFilter.class);
-        return http.build();
 
+        return http.build();
     }
 
 }
